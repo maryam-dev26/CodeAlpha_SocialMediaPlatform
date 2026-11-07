@@ -1,7 +1,7 @@
-const test = require('node:test')
-const assert = require('node:assert/strict')
+import test from 'node:test'
+import assert from 'node:assert/strict'
 
-const User = require('../src/models/User')
+import User from '../src/models/User.js'
 
 const baseUser = {
   name: 'Maryam Khan',

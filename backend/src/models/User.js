@@ -1,16 +1,13 @@
-const mongoose = require('mongoose')
+import mongoose from 'mongoose'
 
-const EMAIL_PATTERN =
-  /^[A-Za-z0-9_%+-]+(?:\.[A-Za-z0-9_%+-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}$/
-
+const EMAIL_PATTERN =  /^[A-Za-z0-9_%+-]+(?:\.[A-Za-z0-9_%+-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}$/
 const USERNAME_PATTERN = /^[a-zA-Z0-9_]+$/
 
 const tagValidator = {
   validator: (tags) =>
-  tags.every((tag) => tag.trim().length > 0 && tag.trim().length <= 30),
+    tags.every((tag) => tag.length >= 1 && tag.length <= 30),
   message: 'Each tag must be between 1 and 30 characters',
 }
-
 const tagArrayValidator = {
   validator: (tags) => tags.length <= 20,
   message: 'A user can have at most 20 entries',
@@ -64,12 +61,12 @@ const userSchema = new mongoose.Schema(
       maxlength: [2048, 'Avatar URL cannot exceed 2048 characters'],
     },
     skills: {
-      type: [String],
+      type: [{ type: String, trim: true }],
       default: [],
       validate: [tagValidator, tagArrayValidator],
     },
     interests: {
-      type: [String],
+      type: [{ type: String, trim: true }],
       default: [],
       validate: [tagValidator, tagArrayValidator],
     },
@@ -79,4 +76,4 @@ const userSchema = new mongoose.Schema(
   },
 )
 
-module.exports = mongoose.model('User', userSchema)
+export default mongoose.model('User', userSchema)

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+import mongoose from 'mongoose'
 
 const connectionStates = {
   0: 'disconnected',
@@ -29,4 +29,4 @@ function getDBStatus() {
   return connectionStates[mongoose.connection.readyState] || 'unknown'
 }
 
-module.exports = { connectDB, getDBStatus }
+export { connectDB, getDBStatus }

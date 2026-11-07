@@ -1,7 +1,7 @@
-const cors = require('cors')
-const express = require('express')
+import cors from 'cors'
+import express from 'express'
 
-const { getDBStatus } = require('./config/db')
+import { getDBStatus } from './config/db.js'
 
 const app = express()
 
@@ -20,4 +20,4 @@ app.get('/api/health', (req, res) => {
   })
 })
 
-module.exports = app
+export default app
