@@ -1,25 +1,18 @@
-import jwt from 'jsonwebtoken'
-
 import User from '../models/User.js'
+import { verifyAccessToken } from '../utils/tokens.js'
 import { toSafeUser } from '../utils/user.js'
 
 const unauthorized = (res, message) => res.status(401).json({ message })
 
 export const protect = async (req, res, next) => {
-  const authHeader = req.headers.authorization
+  const token = req.cookies?.accessToken
 
-  if (!authHeader) {
-    return unauthorized(res, 'Authentication required')
-  }
-
-  const [scheme, token] = authHeader.split(' ')
-
-  if (scheme !== 'Bearer' || !token) {
+  if (!token) {
     return unauthorized(res, 'Authentication required')
   }
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET)
+    const payload = verifyAccessToken(token)
     const user = await User.findById(payload.sub)
 
     if (!user) {
@@ -31,7 +24,7 @@ export const protect = async (req, res, next) => {
     return next()
   } catch (error) {
     if (error.name === 'TokenExpiredError') {
-      return unauthorized(res, 'Session expired, please log in again')
+      return unauthorized(res, 'Access token expired')
     }
 
     return unauthorized(res, 'Invalid authentication token')

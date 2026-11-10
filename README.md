@@ -15,7 +15,7 @@ This repository contains the client and server as two independent applications.
 
 ```
 social-media-platform/
-├── client/                     # React + TypeScript frontend
+├── frontend/                     # React + TypeScript frontend
 │   ├── public/                 # Static public assets
 │   └── src/
 │       ├── assets/             # Imported images and styles used by components
@@ -36,7 +36,7 @@ social-media-platform/
 │       ├── App.tsx
 │       ├── index.css           # Tailwind entry point
 │       └── main.tsx
-├── server/                     # Express API
+├── backend/                     # Express API
 │   ├── src/
 │   │   ├── config/             # Database and environment configuration
 │   │   ├── controllers/        # Request handlers
