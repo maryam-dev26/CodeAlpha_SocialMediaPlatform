@@ -6,7 +6,6 @@ if (!apiBaseUrl) {
   throw new Error('VITE_API_URL is not configured')
 }
 
-// Read the body as text first, so an empty or non-JSON body never crashes
 async function parseResponse(response: Response): Promise<unknown> {
   const text = await response.text()
 

@@ -126,6 +126,7 @@ export const login = async (req, res) => {
       user: toSafeUser(user),
     })
   } catch (error) {
+    console.error('login error:', error)
     return res.status(500).json({ message: 'Login failed' })
   }
 }
