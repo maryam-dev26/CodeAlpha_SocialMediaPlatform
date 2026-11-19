@@ -16,12 +16,11 @@ async function parseResponse(response: Response): Promise<unknown> {
   try {
     return JSON.parse(text)
   } catch {
-    // Not JSON (for example an HTML error page from a proxy)
     return null
   }
 }
 
-async function apiRequest<T>(
+async function sendRequest<T>(
   endpoint: string,
   options: RequestInit = {},
 ): Promise<T> {
@@ -37,6 +36,7 @@ async function apiRequest<T>(
     headers.set('Content-Type', 'application/json')
   }
 
+  
   let response: Response
 
   try {
@@ -46,7 +46,6 @@ async function apiRequest<T>(
       headers,
     })
   } catch {
-    // fetch rejects only when the request never reached the server
     throw new ApiError(
       'Network error. Please check your connection and try again.',
       0,
@@ -73,6 +72,49 @@ async function apiRequest<T>(
   }
 
   return data as T
+}
+
+  let refreshPromise: Promise<unknown> | null = null
+
+  function refreshAccessToken(): Promise<unknown> {
+    if(!refreshPromise) {
+      refreshPromise= sendRequest<unknown>('/api/auth/refresh',{
+        method: 'POST',
+      }).finally(() => {
+        refreshPromise = null
+      })
+    }
+    return refreshPromise
+  }
+
+  const NO_REFRESH = [
+  '/api/auth/login',
+  '/api/auth/register',
+  '/api/auth/refresh',
+  '/api/auth/logout',
+]
+
+async function apiRequest<T>(
+  endpoint: string,
+  options: RequestInit = {},
+) : Promise<T> {
+  
+  try {
+    return await sendRequest<T>(endpoint, options)
+  } catch (error) {
+    const shouldRefresh =
+      error instanceof ApiError &&
+      error.status === 401 &&
+      !NO_REFRESH.includes(endpoint)
+
+      if (!shouldRefresh) {
+        throw error
+      }
+
+      await refreshAccessToken()
+
+      return sendRequest<T>(endpoint, options)
+  }
 }
 
 export { apiRequest }
