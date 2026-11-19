@@ -5,6 +5,7 @@ import helmet from 'helmet'
 
 import { getDBStatus } from './config/db.js'
 import authRoutes from './routes/authRoutes.js'
+import postRoutes from './routes/postRoutes.js'
 
 const app = express()
 
@@ -19,6 +20,7 @@ app.use(express.json())
 app.use(cookieParser())
 
 app.use('/api/auth', authRoutes)
+app.use('/api/posts', postRoutes)
 
 app.get('/api/health', (req, res) => {
   const database = getDBStatus()
