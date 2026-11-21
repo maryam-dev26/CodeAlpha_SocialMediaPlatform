@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, Outlet, useNavigate } from 'react-router'
-import { useAuth } from '../../hooks/useAuth.ts'
-import { parseApiError } from '../../utils/formErrors.ts'
+import { useAuth } from '../hooks/useAuth.ts'
+import { parseApiError } from '../utils/formErrors.ts'
 
 export default function AppLayout() {
   const { user, isLoading, logout } = useAuth()

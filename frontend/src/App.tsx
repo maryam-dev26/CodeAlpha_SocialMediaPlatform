@@ -1,13 +1,30 @@
+import { Navigate, Route, Routes } from 'react-router'
+import AppLayout from './layouts/AppLayout.tsx'
+import FeedPage from './pages/FeedPage.tsx'
+import LoginPage from './pages/LoginPage.tsx'
+import ProfilePage from './pages/ProfilePage.tsx'
+import RegisterPage from './pages/RegisterPage.tsx'
+import GuestRoute from './routes/GuestRoute.tsx'
+import ProtectedRoute from './routes/ProtectedRoute.tsx'
+
 function App() {
- return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-slate-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold tracking-tight">Vynkverse</h1>
-        <p className="mt-2 text-slate-400">
-          A developer learning and peer-support community
-        </p>
-      </div>
-    </main>
+  return (
+    <Routes>
+      <Route element={<AppLayout />}>
+        <Route path="/" element={<FeedPage />} />
+
+        <Route element={<GuestRoute />}>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+        </Route>
+
+        <Route element={<ProtectedRoute />}>
+          <Route path="/profile" element={<ProfilePage />} />
+        </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Route>
+    </Routes>
   )
 }
 

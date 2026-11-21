@@ -1,9 +1,9 @@
 import { Navigate, Outlet, useLocation } from 'react-router'
 import { useAuth } from '../hooks/useAuth.ts'
+import type { RedirectFrom } from '../types/routing.ts'
+import { getSafeDestination } from '../utils/redirect.ts'
 
-type GuestRouteState = {
-  from?: { pathname?: string; search?: string; hash?: string }
-}
+type GuestRouteState = { from?: RedirectFrom } | null
 
 export default function GuestRoute() {
   const { user, isLoading } = useAuth()
@@ -11,11 +11,10 @@ export default function GuestRoute() {
 
   if (isLoading) return <p>Loading...</p>
 
-  const state = location.state as GuestRouteState | null
-  const from = state?.from
-  const destination = from?.pathname
-    ? `${from.pathname}${from.search ?? ''}${from.hash ?? ''}`
-    : '/'
+  if (user) {
+    const state = location.state as GuestRouteState
+    return <Navigate to={getSafeDestination(state?.from)} replace />
+  }
 
-  return user ? <Navigate to={destination} replace /> : <Outlet />
+  return <Outlet />
 }

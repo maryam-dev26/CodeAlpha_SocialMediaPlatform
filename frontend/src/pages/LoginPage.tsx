@@ -113,7 +113,11 @@ export default function LoginPage() {
 
         <p className="text-center text-sm text-slate-600">
           New here?{' '}
-          <Link to="/register" className="font-medium text-teal-700 hover:underline">
+          <Link
+            to="/register"
+            state={routeState?.from ? { from: routeState.from } : null}
+            className="font-medium text-teal-700 hover:underline"
+          >
             Create an account
           </Link>
         </p>
