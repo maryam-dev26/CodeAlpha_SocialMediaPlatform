@@ -3,9 +3,10 @@ import { Link, useLocation, useNavigate } from 'react-router'
 import FormField from '../components/common/FormField.tsx'
 import { useAuth } from '../hooks/useAuth.ts'
 import { parseApiError } from '../utils/formErrors.ts'
+import type { RedirectFrom } from '../types/routing.ts'
 
 type LoginRouteState = {
-  from?: { pathname?: string; search?: string; hash?: string }
+  from?: RedirectFrom
   registered?: boolean
 }
 
