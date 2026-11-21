@@ -1,127 +1,122 @@
-import { useState, type SyntheticEvent } from 'react'
+import { useEffect, useState, type SyntheticEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import FormField from '../components/common/FormField.tsx'
 import { useAuth } from '../hooks/useAuth.ts'
 import { parseApiError } from '../utils/formErrors.ts'
 
 type LoginRouteState = {
-  from?: { pathname?: string }
+  from?: { pathname?: string; search?: string; hash?: string }
   registered?: boolean
 }
 
 export default function LoginPage() {
-  
-    const { login } = useAuth()          
-    const location = useLocation()
-    const navigate = useNavigate()
-    const routeState = location.state as LoginRouteState | null
-    const notice = routeState?.registered
-    ? 'Registration successful. You can now log in.'
-    : ''
+  const { login } = useAuth()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const routeState = location.state as LoginRouteState | null
 
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [isSubmitting, setIsSubmitting] = useState(false)
-    const [formError, setFormError] = useState('')
-    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
-    
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formError, setFormError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [notice, setNotice] = useState(
+    routeState?.registered ? 'Registration successful. You can now log in.' : '',
+  )
 
+  useEffect(() => {
+    const state = location.state as LoginRouteState | null
+    if (!state?.registered) return
 
+    navigate(`${location.pathname}${location.search}${location.hash}`, {
+      replace: true,
+      state: state.from ? { from: state.from } : null,
+    })
+  }, [location.hash, location.pathname, location.search, location.state, navigate])
 
-    const handleSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
-        event.preventDefault()
+  const handleSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
+    event.preventDefault()
 
+    if (isSubmitting) return
+
+    setNotice('')
     setFormError('')
     setFieldErrors({})
     setIsSubmitting(true)
 
     try {
-    await login({ email: email.trim(), password })
-
-    const routeState = location.state as LoginRouteState | null
-    navigate(routeState?.from?.pathname ?? '/', { replace: true })
-  } catch (error) {
-    const parsed = parseApiError(error)
-    setFormError(parsed.message)
-    setFieldErrors(parsed.fields)
-  } finally {
-    setIsSubmitting(false)
+      await login({ email: email.trim(), password })
+    } catch (error) {
+      const parsed = parseApiError(error)
+      setFormError(parsed.message)
+      setFieldErrors(parsed.fields)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
-}
 
   return (
     <div className="mx-auto w-full max-w-md px-4 py-8">
-    <form
-      onSubmit={handleSubmit}
-      noValidate
-      className="space-y-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
-    >
-      <h1 className="text-xl font-semibold text-slate-900">Log in</h1>
-
-      {notice ? (
-        <p
-          role="status"
-          className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800"
-        >
-          {notice}
-        </p>
-      ) : null}
-
-      {formError ? (
-        <p
-          role="alert"
-          className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
-        >
-          {formError}
-        </p>
-      ) : null}
-
-      <FormField
-        id="login-email"
-        label="Email"
-        type="email"
-        autoComplete="email"
-        value={email}
-        onChange={setEmail}
-        error={fieldErrors.email}
-      />
-
-      <FormField
-        id="login-password"
-        label="Password"
-        type="password"
-        autoComplete="current-password"
-        value={password}
-        onChange={setPassword}
-        error={fieldErrors.password}
-      />
-
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="w-full rounded-md bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
+      <form
+        onSubmit={handleSubmit}
+        noValidate
+        className="space-y-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
       >
-        {isSubmitting ? 'Logging in…' : 'Log in'}
-      </button>
+        <h1 className="text-xl font-semibold text-slate-900">Log in</h1>
 
-      <p className="text-center text-sm text-slate-600">
-        New here?{' '}
-        <Link to="/register" className="font-medium text-teal-700 hover:underline">
-          Create an account
-        </Link>
-      </p>
-    </form>
-  </div>
+        {notice ? (
+          <p
+            role="status"
+            className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800"
+          >
+            {notice}
+          </p>
+        ) : null}
+
+        {formError ? (
+          <p
+            role="alert"
+            className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
+          >
+            {formError}
+          </p>
+        ) : null}
+
+        <FormField
+          id="login-email"
+          label="Email"
+          type="email"
+          autoComplete="email"
+          value={email}
+          onChange={setEmail}
+          error={fieldErrors.email}
+        />
+
+        <FormField
+          id="login-password"
+          label="Password"
+          type="password"
+          autoComplete="current-password"
+          value={password}
+          onChange={setPassword}
+          error={fieldErrors.password}
+        />
+
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full rounded-md bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isSubmitting ? 'Logging in…' : 'Log in'}
+        </button>
+
+        <p className="text-center text-sm text-slate-600">
+          New here?{' '}
+          <Link to="/register" className="font-medium text-teal-700 hover:underline">
+            Create an account
+          </Link>
+        </p>
+      </form>
+    </div>
   )
 }
-
-
-
-
-
-
-
-
-
-
-
