@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import PostCard from '../components/Post/PostCard.tsx'
-import PostForm from '../components/Post/PostForm.tsx'
+import PostCard from '../components/post/PostCard.tsx'
+import PostForm from '../components/post/PostForm.tsx'
 import { useAuth } from '../hooks/useAuth.ts'
 import { deletePost, getPosts } from '../services/postService.ts'
 import type { Pagination, Post, PostType } from '../types/post.ts'
@@ -66,6 +66,10 @@ export default function FeedPage() {
 
   const handleCreated = () => {
     setPage(1)
+    setReloadKey((key) => key + 1)
+  }
+
+  const handleUpdated = () => {
     setReloadKey((key) => key + 1)
   }
 
@@ -142,8 +146,10 @@ export default function FeedPage() {
             <PostCard
               key={post.id}
               post={post}
+              canEdit={user?.id === post.author.id}
               // Compare ids: only the author sees the Delete button
               canDelete={user?.id === post.author.id}
+              onUpdated={handleUpdated}
               onDelete={handleDelete}
             />
           ))}
