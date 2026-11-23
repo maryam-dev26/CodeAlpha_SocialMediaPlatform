@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
 
+import Comment from '../models/Comment.js'
 import Post from '../models/Post.js'
 import {
   createPostSchema,
@@ -75,8 +76,6 @@ export const listPosts = async (req, res) => {
   try {
     const [posts, total] = await Promise.all([
       Post.find(filter)
-        // _id is the tie-breaker: two posts created in the same millisecond
-        // still come back in a stable order, so pages never repeat or skip items.
         .sort({ createdAt: -1, _id: -1 })
         .skip((page - 1) * limit)
         .limit(limit)
@@ -157,6 +156,7 @@ export const deletePost = async (req, res) => {
     }
 
     await post.deleteOne()
+    await Comment.deleteMany({ post: post._id })
 
     return res.status(200).json({ message: 'Post deleted' })
   } catch (error) {
