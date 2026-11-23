@@ -30,3 +30,10 @@ export const protect = async (req, res, next) => {
     return unauthorized(res, 'Invalid authentication token')
   }
 }
+
+export const optionalAuth = (req, res, next) => {
+  if (!req.cookies?.accessToken) {
+    return next()
+  }
+  return protect(req, res, next)
+}

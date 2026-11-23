@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 
 import Comment from '../models/Comment.js'
 import Post from '../models/Post.js'
+import Like from '../models/Like.js'
 import {
   createPostSchema,
   listPostsQuerySchema,
@@ -17,8 +18,24 @@ const validationErrorResponse = (error) => ({
 })
 
 const AUTHOR_FIELDS = 'name username avatarUrl'
+const getLikeStats = async (postIds, userId) => {
+  const [counts, myLikes] = await Promise.all([
+    Like.aggregate([
+      { $match: { post: { $in: postIds } } },
+      { $group: { _id: '$post', count: { $sum: 1 } } },
+    ]),
+    userId
+      ? Like.find({ post: { $in: postIds }, user: userId }).select('post').lean()
+      : [],
+  ])
 
-const toPostResponse = (post) => {
+   return {
+    countByPost: new Map(counts.map((item) => [item._id.toString(), item.count])),
+    likedPostIds: new Set(myLikes.map((like) => like.post.toString())),
+  }
+}
+
+const toPostResponse = (post, { likeCount = 0, likedByMe = false } = {}) => {
   const source = typeof post.toObject === 'function' ? post.toObject() : post
 
   return {
@@ -34,6 +51,8 @@ const toPostResponse = (post) => {
     },
     createdAt: source.createdAt,
     updatedAt: source.updatedAt,
+    likeCount,
+    likedByMe,
   }
 }
 
@@ -62,7 +81,6 @@ export const createPost = async (req, res) => {
   }
 }
 
-// Public: guests can read the feed.
 export const listPosts = async (req, res) => {
   const result = listPostsQuerySchema.safeParse(req.query)
 
@@ -84,8 +102,18 @@ export const listPosts = async (req, res) => {
       Post.countDocuments(filter),
     ])
 
+    const { countByPost, likedPostIds } = await getLikeStats(
+      posts.map((post) => post._id),
+      req.user?.id,
+    )
+
     return res.status(200).json({
-      posts: posts.map(toPostResponse),
+      posts: posts.map((post) =>
+        toPostResponse(post, {
+          likeCount: countByPost.get(post._id.toString()) ?? 0,
+          likedByMe: likedPostIds.has(post._id.toString()),
+        }),
+      ),
       pagination: {
         page,
         limit,
@@ -126,9 +154,17 @@ export const updatePost = async (req, res) => {
     await post.save()
     await post.populate('author', AUTHOR_FIELDS)
 
+    const { countByPost, likedPostIds } = await getLikeStats(
+      [post._id],
+      req.user?.id,
+    )
+
     return res.status(200).json({
       message: 'Post updated',
-      post: toPostResponse(post),
+      post: toPostResponse(post, {
+        likeCount: countByPost.get(post._id.toString()) ?? 0,
+        likedByMe: likedPostIds.has(post._id.toString()),
+      }),
     })
   } catch (error) {
     console.error('updatePost error:', error)
@@ -148,7 +184,6 @@ export const deletePost = async (req, res) => {
       return postNotFound(res)
     }
 
-    // Auhtorization: same ownership rule as updatePost.
     if (post.author.toString() !== req.user.id) {
       return res
         .status(403)
@@ -157,6 +192,7 @@ export const deletePost = async (req, res) => {
 
     await post.deleteOne()
     await Comment.deleteMany({ post: post._id })
+    await Like.deleteMany({ post: post._id })
 
     return res.status(200).json({ message: 'Post deleted' })
   } catch (error) {

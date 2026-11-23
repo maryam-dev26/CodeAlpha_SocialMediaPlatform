@@ -173,7 +173,12 @@ test('lists posts publicly, newest first, with pagination', async () => {
 
   await createPost(user, { title: 'First post' })
   await createPost(user, { title: 'Second post' })
-  await createPost(user, { title: 'Third post' })
+  const thirdPost = await createPost(user, { title: 'Third post' })
+  const likeResponse = await request(
+    `/api/posts/${thirdPost.body.post.id}/like`,
+    { method: 'POST', cookie: user.cookie },
+  )
+  assert.equal(likeResponse.status, 200)
 
   // No cookie: guests can read the feed
   const response = await request('/api/posts?limit=2')
@@ -183,8 +188,18 @@ test('lists posts publicly, newest first, with pagination', async () => {
     response.body.posts.map((post) => post.title),
     ['Third post', 'Second post'],
   )
+  assert.equal(response.body.posts[0].likeCount, 1)
+  assert.equal(response.body.posts[0].likedByMe, false)
+  assert.equal(response.body.posts[1].likeCount, 0)
+  assert.equal(response.body.posts[1].likedByMe, false)
   assert.equal(response.body.pagination.total, 3)
   assert.equal(response.body.pagination.totalPages, 2)
+
+  const authenticatedFeed = await request('/api/posts?limit=2', {
+    cookie: user.cookie,
+  })
+  assert.equal(authenticatedFeed.body.posts[0].likeCount, 1)
+  assert.equal(authenticatedFeed.body.posts[0].likedByMe, true)
 
   const secondPage = await request('/api/posts?limit=2&page=2')
   assert.deepEqual(
@@ -265,6 +280,11 @@ test('lets the owner edit and then delete their post', async () => {
   const owner = await createUser('maya')
   const created = await createPost(owner)
   const path = `/api/posts/${created.body.post.id}`
+  const like = await request(`${path}/like`, {
+    method: 'POST',
+    cookie: owner.cookie,
+  })
+  assert.equal(like.status, 200)
 
   const edit = await request(path, {
     method: 'PATCH',
@@ -276,6 +296,8 @@ test('lets the owner edit and then delete their post', async () => {
   assert.equal(edit.body.post.title, 'Updated title')
   // type is not editable
   assert.equal(edit.body.post.type, 'journey')
+  assert.equal(edit.body.post.likeCount, 1)
+  assert.equal(edit.body.post.likedByMe, true)
 
   const remove = await request(path, { method: 'DELETE', cookie: owner.cookie })
 
