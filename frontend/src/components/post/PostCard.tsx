@@ -3,6 +3,7 @@ import { useState } from 'react'
 import type { Post } from '../../types/post.ts'
 import { postTypeLabels, postTypeStyles } from '../../utils/postTypes.ts'
 import PostEditForm from './PostEditForm.tsx'
+import CommentSection from '../comment/CommentSection.tsx'
 
 interface PostCardProps {
   post: Post
@@ -24,6 +25,7 @@ export default function PostCard({
   onToggleLike,
 }: PostCardProps) {
   const [isEditing, setIsEditing] = useState(false)
+  const [showComments, setShowComments] = useState(false)
   const date = new Date(post.createdAt).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
@@ -105,7 +107,20 @@ export default function PostCard({
         <span className="text-sm text-slate-500">
           {post.likeCount} {post.likeCount === 1 ? 'like' : 'likes'}
         </span>
+
+        <button
+          type="button"
+          onClick={() => setShowComments((prev) => !prev)}
+          aria-expanded={showComments}
+          className="ml-auto rounded-md px-2 py-1 text-sm text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-teal-700"
+        >
+          {showComments ? 'Hide comments' : 'Comments'}
+        </button>
       </div>
+
+      {showComments ? (
+        <CommentSection postId={post.id} postAuthorId={post.author.id} />
+      ) : null}
     </article>
   )
 }
