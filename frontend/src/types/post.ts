@@ -15,6 +15,13 @@ export interface Post {
   author: PostAuthor
   createdAt: string
   updatedAt: string
+  likeCount: number
+  likedByMe: boolean
+}
+
+export interface LikeResponse {
+  liked: boolean
+  likeCount: number
 }
 
 export interface Pagination {

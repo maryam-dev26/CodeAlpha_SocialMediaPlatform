@@ -3,7 +3,12 @@ import { Link } from 'react-router'
 import PostCard from '../components/post/PostCard.tsx'
 import PostForm from '../components/post/PostForm.tsx'
 import { useAuth } from '../hooks/useAuth.ts'
-import { deletePost, getPosts } from '../services/postService.ts'
+import {
+  deletePost,
+  getPosts,
+  likePost,
+  unlikePost,
+} from '../services/postService.ts'
 import type { Pagination, Post, PostType } from '../types/post.ts'
 import { parseApiError } from '../utils/formErrors.ts'
 import { postTypes, postTypeLabels } from '../utils/postTypes.ts'
@@ -22,6 +27,9 @@ export default function FeedPage() {
   const [reloadKey, setReloadKey] = useState(0)
 
   const [posts, setPosts] = useState<Post[]>([])
+  const [likingPostIds, setLikingPostIds] = useState<Set<string>>(
+    () => new Set(),
+  )
   const [pagination, setPagination] = useState<Pagination | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -91,6 +99,39 @@ export default function FeedPage() {
     }
   }
 
+  const handleToggleLike = async (post: Post) => {
+    if (likingPostIds.has(post.id)) {
+      return
+    }
+
+    setLikingPostIds((ids) => new Set(ids).add(post.id))
+
+    try {
+      const result = post.likedByMe
+        ? await unlikePost(post.id)
+        : await likePost(post.id)
+      setPosts((currentPosts) =>
+        currentPosts.map((currentPost) =>
+          currentPost.id === post.id
+            ? {
+                ...currentPost,
+                likedByMe: result.liked,
+                likeCount: result.likeCount,
+              }
+            : currentPost,
+        ),
+      )
+    } catch (caught) {
+      setError(parseApiError(caught).message)
+    } finally {
+      setLikingPostIds((ids) => {
+        const nextIds = new Set(ids)
+        nextIds.delete(post.id)
+        return nextIds
+      })
+    }
+  }
+
   const totalPages = pagination?.totalPages ?? 1
 
   return (
@@ -149,8 +190,11 @@ export default function FeedPage() {
               canEdit={user?.id === post.author.id}
               // Compare ids: only the author sees the Delete button
               canDelete={user?.id === post.author.id}
+              canLike={Boolean(user)}
+              isLiking={likingPostIds.has(post.id)}
               onUpdated={handleUpdated}
               onDelete={handleDelete}
+              onToggleLike={handleToggleLike}
             />
           ))}
         </div>

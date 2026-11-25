@@ -2,6 +2,7 @@ import { apiRequest } from './api.ts'
 import type { MessageResponse } from '../types/auth.ts'
 import type {
   CreatePostInput,
+  LikeResponse,
   PostListResponse,
   PostResponse,
   PostType,
@@ -42,4 +43,16 @@ function deletePost(id: string): Promise<MessageResponse> {
   return apiRequest<MessageResponse>(`/api/posts/${id}`, { method: 'DELETE' })
 }
 
-export { getPosts, createPost, updatePost, deletePost }
+function likePost(postId: string): Promise<LikeResponse> {
+  return apiRequest<LikeResponse>(`/api/posts/${postId}/like`, {
+    method: 'POST',
+  })
+}
+
+function unlikePost(postId: string): Promise<LikeResponse> {
+  return apiRequest<LikeResponse>(`/api/posts/${postId}/like`, {
+    method: 'DELETE',
+  })
+}
+
+export { getPosts, createPost, updatePost, deletePost, likePost, unlikePost }

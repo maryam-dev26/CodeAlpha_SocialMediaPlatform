@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
 
 import type { Post } from '../../types/post.ts'
 import { postTypeLabels, postTypeStyles } from '../../utils/postTypes.ts'
@@ -8,16 +9,22 @@ interface PostCardProps {
   post: Post
   canEdit: boolean
   canDelete: boolean
+  canLike: boolean
+  isLiking: boolean
   onUpdated: () => void
   onDelete: (post: Post) => void
+  onToggleLike: (post: Post) => void
 }
 
 export default function PostCard({
   post,
   canEdit,
   canDelete,
+  canLike,
+  isLiking,
   onUpdated,
   onDelete,
+  onToggleLike,
 }: PostCardProps) {
   const [isEditing, setIsEditing] = useState(false)
   const date = new Date(post.createdAt).toLocaleDateString('en-US', {
@@ -83,6 +90,34 @@ export default function PostCard({
       <p className="mt-4 text-sm text-slate-500">
         {post.author.name} (@{post.author.username}) on {date}
       </p>
+
+      <div className="mt-4 flex items-center gap-3">
+        {canLike ? (
+          <button
+            type="button"
+            onClick={() => onToggleLike(post)}
+            disabled={isLiking}
+            aria-pressed={post.likedByMe}
+            className={`rounded-md px-2 py-1 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 disabled:cursor-not-allowed disabled:opacity-60 ${
+              post.likedByMe
+                ? 'font-medium text-teal-800 hover:bg-teal-50'
+                : 'text-slate-700 hover:bg-slate-100'
+            }`}
+          >
+            {post.likedByMe ? 'Liked' : 'Like'}
+          </button>
+        ) : (
+          <Link
+            to="/login"
+            className="rounded-md px-2 py-1 text-sm text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
+          >
+            Log in to like
+          </Link>
+        )}
+        <span className="text-sm text-slate-500">
+          {post.likeCount} {post.likeCount === 1 ? 'like' : 'likes'}
+        </span>
+      </div>
     </article>
   )
 }
