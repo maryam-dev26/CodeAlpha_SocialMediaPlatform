@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 import PostCard from '../components/post/PostCard.tsx'
 import PostForm from '../components/post/PostForm.tsx'
 import { useAuth } from '../hooks/useAuth.ts'
@@ -21,6 +21,8 @@ const FILTERS: TypeFilter[] = ['all', ...postTypes]
 
 export default function FeedPage() {
   const { user } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
 
   const [filter, setFilter] = useState<TypeFilter>('all')
   const [page, setPage] = useState(1)
@@ -100,6 +102,11 @@ export default function FeedPage() {
   }
 
   const handleToggleLike = async (post: Post) => {
+    if (!user) {
+      navigate('/login', { state: { from: location } })
+      return
+    }
+
     if (likingPostIds.has(post.id)) {
       return
     }
@@ -190,7 +197,6 @@ export default function FeedPage() {
               canEdit={user?.id === post.author.id}
               // Compare ids: only the author sees the Delete button
               canDelete={user?.id === post.author.id}
-              canLike={Boolean(user)}
               isLiking={likingPostIds.has(post.id)}
               onUpdated={handleUpdated}
               onDelete={handleDelete}
