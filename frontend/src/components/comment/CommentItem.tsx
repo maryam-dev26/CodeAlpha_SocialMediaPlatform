@@ -21,7 +21,7 @@ export default function CommentItem({
 
   return (
     <div className="flex items-start gap-3 py-3">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-teal-100 text-sm font-semibold text-teal-800 select-none">
+      <div aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-teal-100 text-sm font-semibold text-teal-800 select-none">
         {comment.author.name.charAt(0).toUpperCase()}
       </div>
 
@@ -30,8 +30,8 @@ export default function CommentItem({
           <span className="text-sm font-medium text-slate-900">
             {comment.author.name}
           </span>
-          <span className="text-xs text-slate-400">@{comment.author.username}</span>
-          <span className="ml-auto text-xs text-slate-400 shrink-0">{date}</span>
+          <span className="text-xs text-slate-500">@{comment.author.username}</span>
+          <span className="ml-auto text-xs text-slate-500 shrink-0">{date}</span>
         </div>
 
         <p className="mt-0.5 text-sm text-slate-700 whitespace-pre-wrap break-words">
@@ -44,10 +44,10 @@ export default function CommentItem({
           type="button"
           onClick={() => onDelete(comment)}
           disabled={isDeleting}
-          aria-label="Delete comment"
+          aria-label={`Delete comment by ${comment.author.name}`}
           className="shrink-0 rounded-md px-2 py-1 text-xs text-red-600 hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-red-600 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Delete
+          {isDeleting ? 'Deleting…' : 'Delete'}
         </button>
       ) : null}
     </div>
