@@ -43,6 +43,7 @@ export default function CommentSection({
   }, [postId])
 
   const handleCreated = (comment: Comment) => {
+    setActionError('')
     setComments((prev) => [...prev, comment])
   }
 
@@ -67,8 +68,7 @@ export default function CommentSection({
   }
 
   const canDeleteComment = (comment: Comment) =>
-    Boolean(user) &&
-    (user?.id === comment.author.id || user?.id === postAuthorId)
+    user?.id === comment.author.id || user?.id === postAuthorId
 
   return (
     <section
